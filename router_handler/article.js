@@ -32,9 +32,13 @@ exports.addArticle = (req, res) => {
 
 // 获取文章列表处理函数
 exports.listArticle = async (req, res) => {
+  // 联合两个表进行查询，查询的文章必须有对应分类（没有则代表该分类被删除，同时该分类下的所有文章也不应该展示）
+  // 说明：ifnull 代表若第一个参数为空则选择第二个（这里第二个参数为本身代表不选择），否则选择第一个
+  //       limit 第一个参数代表从第几个开始，第二个参数代表限制多少个
   const sql = `select a.id, a.title, a.pub_date, a.state, b.name as cate_name
                 from ev_articles as a,ev_article_cate as b 
-                where a.cate_id = b.id and a.is_delete = 0 and a.cate_id = ifnull(?, a.cate_id) and a.state = ifnull(?, a.state) limit ?,?`;
+                where a.cate_id = b.id and a.is_delete = 0 
+                and a.cate_id = ifnull(?, a.cate_id) and a.state = ifnull(?, a.state) limit ?,?`;
 
   let results = [];
   try {
@@ -48,7 +52,9 @@ exports.listArticle = async (req, res) => {
     return res.cc(e);
   }
 
-  const countSql = "select * from ev_articles where is_delete = 0";
+  // 用于计算满足条件的文章总数（条件：没有被删除且有对应的分类）
+  const countSql = `select a.id from ev_articles as a,ev_article_cate as b 
+    where a.cate_id = b.id and a.is_delete = 0`;
   let total = null;
   try {
     total = await db.queryByPromisify(countSql);

@@ -55,8 +55,8 @@ exports.addArticleCates = (req, res) => {
 
 // 删除文章分类的处理函数
 exports.deleteCateById = (req, res) => {
-  // 定义标记删除的 SQL 语句
-  const sql = `update ev_article_cate set is_delete=1 where id=?`;
+  // 定义删除的 SQL 语句
+  const sql = `delete from ev_article_cate where id=?`;
   // 调用 db.query() 执行 SQL 语句
   db.query(sql, req.params.id, (err, results) => {
     if (err) return res.cc(err);
